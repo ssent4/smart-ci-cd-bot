@@ -5,9 +5,6 @@ import numpy as np
 import joblib
 import os
 
-# ------------------------------
-# MODEL DEFINITION
-# ------------------------------
 class CICDClassifier(nn.Module):
     def __init__(self, input_dim, hidden_dim=128, output_dim=7):
         super().__init__()
@@ -23,9 +20,6 @@ class CICDClassifier(nn.Module):
     def forward(self, x):
         return self.network(x)
 
-# ------------------------------
-# TRAIN MODEL
-# ------------------------------
 def train_model(X, y, epochs=10, lr=0.001, hidden_dim=128, output_dim=None, model_path="artifacts/cicd_model.pth"):
     if isinstance(X, np.ndarray):
         X = torch.tensor(X, dtype=torch.float32)
@@ -56,12 +50,9 @@ def train_model(X, y, epochs=10, lr=0.001, hidden_dim=128, output_dim=None, mode
         "hidden_dim": hidden_dim,
         "output_dim": output_dim
     }, model_path)
-    print(f"✅ Model saved at {model_path}")
+    print(f"Model saved at {model_path}")
     return model
 
-# ------------------------------
-# LOAD MODEL
-# ------------------------------
 def load_model(model_path="artifacts/cicd_model.pth"):
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Model file not found: {model_path}")
@@ -75,13 +66,10 @@ def load_model(model_path="artifacts/cicd_model.pth"):
     model.eval()
     return model
 
-# ------------------------------
-# SAVE / LOAD ENCODER
-# ------------------------------
 def save_encoder(encoder, path="artifacts/encoder.pkl"):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     joblib.dump(encoder, path)
-    print(f"✅ Encoder saved at {path}")
+    print(f"Encoder saved at {path}")
 
 def load_encoder(path="artifacts/encoder.pkl"):
     if not os.path.exists(path):

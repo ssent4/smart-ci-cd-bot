@@ -8,15 +8,9 @@ from app.main import predict_failure, LogInput
 from app.feature_extraction import encode_text, encode_metadata, combine_features
 from app.model import load_model, load_encoder
 
-# ------------------------------
-# Load model & encoder for tests
-# ------------------------------
 model = load_model()
 encoder = load_encoder()
 
-# ------------------------------
-# Helper function for test logs
-# ------------------------------
 def make_log(message="Test failed: AssertionError"):
     return {
         "message": message,
@@ -28,9 +22,6 @@ def make_log(message="Test failed: AssertionError"):
         "user": "alice"
     }
 
-# ------------------------------
-# Test 1: Pipeline shapes
-# ------------------------------
 def test_pipeline_shapes():
     sample_log = pd.DataFrame([make_log()])
     text_features = encode_text(sample_log['message'].tolist())
@@ -40,15 +31,11 @@ def test_pipeline_shapes():
     assert X.shape[0] == 1, "Should have 1 row"
     assert isinstance(X, np.ndarray), "X must be a numpy array"
 
-    # Make sure it works with PyTorch model
     X_tensor = torch.tensor(X, dtype=torch.float32)
     with torch.no_grad():
         logits = model(X_tensor)
     assert logits.shape[0] == 1, "Output batch size should be 1"
 
-# ------------------------------
-# Test 2: Sample predictions
-# ------------------------------
 @pytest.mark.parametrize("log_dict", [
     {"message": "Build failed: missing dependency", "pipeline_id":"p2", "stage_name":"build",
      "job_name":"compile","task_name":"compile_all","branch":"dev","user":"bob"},
@@ -62,18 +49,12 @@ def test_sample_predictions(log_dict):
     assert isinstance(result["prediction"], int), "Prediction must be an integer"
     assert "suggestion" in result, "Suggestion key missing"
 
-# ------------------------------
-# Test 3: Prediction confidence (logits)
-# ------------------------------
 def test_prediction_confidence():
     log_input = LogInput(**make_log())
     result = predict_failure(log_input)
     assert "prediction" in result
     assert "suggestion" in result
 
-# ------------------------------
-# Test 4: Empty / unknown inputs
-# ------------------------------
 def test_empty_unknown_inputs():
     log_dict = {
         "message": "",
@@ -88,12 +69,8 @@ def test_empty_unknown_inputs():
     result = predict_failure(log_input)
     assert "prediction" in result, "Prediction should exist even for unknown inputs"
 
-# ------------------------------
-# Test 5: Regression / consistency
-# ------------------------------
 def test_regression_example():
     log_input = LogInput(**make_log())
     result = predict_failure(log_input)
-    # We cannot hardcode prediction, but ensure it is consistent type
     assert isinstance(result["prediction"], int)
     assert "suggestion" in result

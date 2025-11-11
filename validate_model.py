@@ -4,23 +4,17 @@ from app.model import load_model, load_encoder
 from app.feature_extraction import encode_text, encode_metadata, combine_features
 from app.utils import get_fix
 
-# ------------------------------
-# LOAD MODEL & ENCODER
-# ------------------------------
 model = load_model()
 encoder = load_encoder()
-print("✅ Model and encoder loaded from artifacts")
+print("Model and encoder loaded from artifacts")
 
-# ------------------------------
-# SANITY CHECK LOGS
-# ------------------------------
 sample_logs = [
     "Build failed: missing dependency",
     "Deployment succeeded",
     "Test failed: assertion error",
     "Environment setup inconsistent",
     "Version mismatch in build tools",
-    ""  # empty log
+    ""
 ]
 
 print("\n=== SANITY CHECKS ===")
@@ -35,13 +29,11 @@ for log in sample_logs:
         'user': 'dev'
     }])
 
-    # Encode features
     text_features = encode_text(df['message'].tolist())
     meta_features, _ = encode_metadata(df, encoder=encoder)
     X = combine_features(text_features, meta_features)
     X_tensor = torch.tensor(X, dtype=torch.float32)
 
-    # Predict
     with torch.no_grad():
         logits = model(X_tensor)
         probs = torch.softmax(logits, dim=1).numpy()[0]
@@ -51,9 +43,6 @@ for log in sample_logs:
 
     print(f"Log: '{log}' -> Prediction: {{'prediction': {pred_idx}, 'probabilities': {probs.tolist()}, 'suggestion': '{suggestion}'}}")
 
-# ------------------------------
-# OPTIONAL: Evaluate test split
-# ------------------------------
 from app.utils import load_data
 
 features, labels = load_data()

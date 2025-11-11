@@ -2,9 +2,6 @@ import pandas as pd
 import kagglehub
 from kagglehub import KaggleDatasetAdapter
 
-# ------------------------------
-# DATA LOADING
-# ------------------------------
 def load_data():
     """
     Load CI/CD logs dataset from Kaggle and return features & labels.
@@ -19,7 +16,6 @@ def load_data():
     features = df[['message', 'pipeline_id', 'stage_name', 'job_name', 'task_name', 'branch', 'user']]
     df['status'] = df['status'].str.lower()
 
-    # Multi-class labeling
     def assign_label(row):
         msg = row['message'].lower()
         status = row['status'].lower()
@@ -38,19 +34,15 @@ def load_data():
                 return 3
             elif "env" in msg or "environment" in msg:
                 return 4
-        return 1  # fallback for other failures
+        return 1
 
     labels = df.apply(assign_label, axis=1)
 
-    # Drop rows with missing labels
     valid_mask = labels.notna()
     features = features[valid_mask].reset_index(drop=True)
     labels = labels[valid_mask].reset_index(drop=True)
     return features, labels
 
-# ------------------------------
-# SUGGESTION MAPPING
-# ------------------------------
 def get_fix(pred_idx, log_message=None):
     """
     Return a human-readable, actionable fix suggestion for a predicted failure type.
@@ -60,9 +52,6 @@ def get_fix(pred_idx, log_message=None):
     if log_message:
         log_lower = log_message.lower()
 
-        # -------------------------
-        # Explicit log-based fixes
-        # -------------------------
         if "skipped" in log_lower:
             return "Task was skipped due to pipeline conditions. Check pipeline configuration."
         elif "running" in log_lower:
@@ -88,9 +77,6 @@ def get_fix(pred_idx, log_message=None):
         elif "exception" in log_lower or "error" in log_lower:
             return "An error or exception occurred. Review stack trace and logs for details."
 
-    # -------------------------
-    # Fallback based on predicted class
-    # -------------------------
     if pred_idx == 0:
         return "Pipeline succeeded. No action needed."
     elif pred_idx == 1:
